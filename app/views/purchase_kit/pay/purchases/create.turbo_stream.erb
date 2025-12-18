@@ -1,0 +1,6 @@
+<%= turbo_stream.append "purchasekit_paywall" do %>
+  <div data-purchasekit-pay--paywall-target="response"
+       data-correlation-id="<%= @correlation_id %>"
+       data-store-product-id="<%= @store_product_id %>">
+  </div>
+<% end %>

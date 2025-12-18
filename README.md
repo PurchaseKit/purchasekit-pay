@@ -1,0 +1,145 @@
+# PurchaseKit::Pay
+
+PurchaseKit payment processor for the [Pay gem](https://github.com/pay-rails/pay).
+
+Add mobile in-app purchases (IAP) to your Rails app with PurchaseKit and Pay.
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem "purchasekit-pay"
+```
+
+And then execute:
+
+```bash
+bundle install
+```
+
+## Configuration
+
+Configure your PurchaseKit API key:
+
+```ruby
+# config/initializers/purchasekit.rb
+PurchaseKit::Pay.configure do |config|
+  config.api_key = Rails.application.credentials.dig(:purchasekit, :api_key)
+  config.webhook_secret = Rails.application.credentials.dig(:purchasekit, :webhook_secret)
+end
+```
+
+Mount the engine in your routes:
+
+```ruby
+# config/routes.rb
+mount PurchaseKit::Pay::Engine, at: "/purchasekit"
+```
+
+### JavaScript setup
+
+Import the Turbo Stream actions in your application:
+
+```javascript
+// app/javascript/application.js
+import "purchasekit-pay/turbo_actions"
+```
+
+Register the gem's Stimulus controllers:
+
+```javascript
+// app/javascript/controllers/index.js
+import { application } from "controllers/application"
+import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
+
+eagerLoadControllersFrom("controllers", application)
+eagerLoadControllersFrom("purchasekit-pay", application)
+```
+
+## Usage
+
+### Adding a paywall
+
+First, ensure your user has a PurchaseKit payment processor:
+
+```ruby
+current_user.set_payment_processor(:purchasekit)
+```
+
+Then render a paywall using the builder pattern:
+
+```erb
+<%# Subscribe to ActionCable for real-time redirect after purchase %>
+<%= turbo_stream_from dom_id(Current.user.payment_processor) %>
+
+<%= purchasekit_paywall customer: Current.user.payment_processor, success_path: dashboard_path do |paywall| %>
+  <%# Plan options with radio buttons %>
+  <%= paywall.plan_option store_product_id: "com.example.annual", selected: true do %>
+    <span>Annual</span>
+    <%= paywall.price store_product_id: "com.example.annual" %>
+  <% end %>
+
+  <%= paywall.plan_option store_product_id: "com.example.monthly" do %>
+    <span>Monthly</span>
+    <%= paywall.price store_product_id: "com.example.monthly" %>
+  <% end %>
+
+  <%# Submit button %>
+  <%= paywall.submit "Subscribe", class: "btn btn-primary" %>
+
+  <%# Restore purchases link %>
+  <%= paywall.restore_link %>
+<% end %>
+```
+
+### Paywall helper options
+
+- `customer:` (required) - A `Pay::Customer` instance
+- `success_path:` - Where to redirect after successful purchase (defaults to `root_path`)
+
+### Builder methods
+
+- `plan_option(store_product_id:, selected: false)` - Radio button for a plan
+- `price(store_product_id:)` - Displays the localized price (fetched from native app)
+- `submit(text)` - Submit button (disabled until prices load)
+- `restore_link(text: "Restore purchases")` - Link to restore previous purchases
+
+### How it works
+
+1. Page loads, Stimulus controller requests prices from native app via Hotwire Native Bridge
+2. User selects a plan and taps subscribe
+3. Form submits to PurchasesController, which creates a purchase intent with the SaaS
+4. Native app handles the App Store/Play Store purchase flow
+5. SaaS receives webhook from Apple/Google, normalizes it, and POSTs to your app
+6. Webhook handler creates `Pay::Subscription` and broadcasts a Turbo Stream redirect
+7. User is redirected to `success_path`
+
+## Webhook events
+
+The gem handles these webhook events from the PurchaseKit SaaS:
+
+- `subscription.created` - Creates a new `Pay::Subscription`
+- `subscription.updated` - Updates subscription status and period
+- `subscription.canceled` - Marks subscription as canceled
+- `subscription.expired` - Marks subscription as expired
+
+## Requirements
+
+- Rails 7.0+
+- Pay 11.0+
+- Turbo Rails (for ActionCable broadcasts)
+- Stimulus
+- Hotwire Native app with PurchaseKit bridge component
+
+### JavaScript dependencies
+
+This gem vendors and pins:
+
+- **@hotwired/hotwire-native-bridge** (v1.2.2)
+
+If your app already pins this package, your version takes precedence.
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
