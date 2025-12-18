@@ -14,7 +14,12 @@ module Pay
     end
 
     def configure_webhooks
-      # Webhooks configured in PurchaseKit::Pay::Webhooks
+      Pay::Webhooks.configure do |events|
+        events.subscribe "purchasekit.subscription.created", PurchaseKit::Pay::Webhooks::SubscriptionCreated.new
+        events.subscribe "purchasekit.subscription.updated", PurchaseKit::Pay::Webhooks::SubscriptionUpdated.new
+        events.subscribe "purchasekit.subscription.canceled", PurchaseKit::Pay::Webhooks::SubscriptionCanceled.new
+        events.subscribe "purchasekit.subscription.expired", PurchaseKit::Pay::Webhooks::SubscriptionExpired.new
+      end
     end
   end
 end
