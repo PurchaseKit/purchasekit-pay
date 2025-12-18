@@ -3,6 +3,10 @@ module PurchaseKit
     class Engine < ::Rails::Engine
       isolate_namespace PurchaseKit::Pay
 
+      initializer "purchasekit_pay.register_processor", before: :load_config_initializers do
+        ::Pay.enabled_processors << :purchasekit unless ::Pay.enabled_processors.include?(:purchasekit)
+      end
+
       initializer "purchasekit_pay.helpers" do
         ActiveSupport.on_load(:action_controller_base) do
           helper PurchaseKit::Pay::PaywallHelper

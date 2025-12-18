@@ -3,8 +3,18 @@ module Pay
     class Error < Pay::Error
     end
 
-    def self.enabled?
-      Pay.enabled_processors.include?(:purchasekit)
+    module_function
+
+    def enabled?
+      true
+    end
+
+    def setup
+      # No setup required
+    end
+
+    def configure_webhooks
+      # Webhooks configured in PurchaseKit::Pay::Webhooks
     end
   end
 end

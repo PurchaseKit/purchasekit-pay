@@ -1,10 +1,6 @@
-# PurchaseKit gems
+# purchasekit-pay gem
 
-This directory contains Ruby gems for PurchaseKit.
-
-## Structure
-
-- `purchasekit-pay/` - Pay gem integration for in-app purchases
+Pay gem integration for in-app purchases.
 
 ## Architecture
 
