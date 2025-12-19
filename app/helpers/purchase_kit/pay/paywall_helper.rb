@@ -27,33 +27,40 @@ module PurchaseKit
       def initialize(template, customer)
         @template = template
         @customer = customer
+        @current_product = nil
       end
 
-      def plan_option(store_product_id:, selected: false, input_class: nil, **options, &block)
-        input_id = "purchasekit_plan_#{store_product_id.parameterize.underscore}"
+      def plan_option(product:, selected: false, input_class: nil, **options, &block)
+        input_id = "purchasekit_plan_#{product.id.parameterize.underscore}"
 
         radio = @template.radio_button_tag(
-          :store_product_id,
-          store_product_id,
+          :product_id,
+          product.id,
           selected,
           id: input_id,
           class: input_class,
           autocomplete: "off",
           data: {
             purchasekit_pay__paywall_target: "planRadio",
-            store_product_id: store_product_id
+            apple_store_product_id: product.apple_product_id,
+            google_store_product_id: product.google_product_id
           }
         )
 
+        @current_product = product
         label = @template.label_tag(input_id, **options) { @template.capture(&block) }
+        @current_product = nil
 
         radio + label
       end
 
-      def price(store_product_id:, **options, &block)
+      def price(**options, &block)
+        raise "price must be called within a plan_option block" unless @current_product
+
         data = (options.delete(:data) || {}).merge(
           purchasekit_pay__paywall_target: "price",
-          store_product_id: store_product_id
+          apple_store_product_id: @current_product.apple_product_id,
+          google_store_product_id: @current_product.google_product_id
         )
 
         loading_content = block ? @template.capture(&block) : "Loading..."

@@ -34,18 +34,36 @@ Builder yielded by the paywall helper.
 
 | Method | Purpose | Data attributes |
 |--------|---------|-----------------|
-| `plan_option(store_product_id:, selected:)` | Radio + label for a plan | `purchasekit_pay__paywall_target: "planRadio"` |
-| `price(store_product_id:)` | Span for localized price | `purchasekit_pay__paywall_target: "price"` |
+| `plan_option(product:, selected:)` | Radio + label for a plan | `purchasekit_pay__paywall_target: "planRadio"` |
+| `price` | Span for localized price (must be within `plan_option` block) | `purchasekit_pay__paywall_target: "price"` |
 | `submit(text)` | Submit button (starts disabled) | `purchasekit_pay__paywall_target: "submitButton"` |
 | `restore_link(text:)` | Link to restore purchases | `action: "click->purchasekit-pay--paywall#restore"` |
 
-## Usage with ActionCable
+## Usage
 
-The view must also include a Turbo Stream subscription for real-time redirect:
+Fetch products in the controller, then use them in the view:
+
+```ruby
+# Controller
+@annual = PurchaseKit::Product.find("prod_XXX")
+@monthly = PurchaseKit::Product.find("prod_YYY")
+```
 
 ```erb
 <%= turbo_stream_from dom_id(customer) %>
 <%= purchasekit_paywall customer: customer, success_path: paid_path do |paywall| %>
-  ...
+  <%= paywall.plan_option product: @annual, selected: true do %>
+    <div>Annual</div>
+    <%= paywall.price %>
+  <% end %>
+
+  <%= paywall.plan_option product: @monthly do %>
+    <div>Monthly</div>
+    <%= paywall.price %>
+  <% end %>
+
+  <%= paywall.submit "Subscribe" %>
 <% end %>
 ```
+
+Display text (name, description) lives in the view for i18n support. The product only contains the store product IDs.
