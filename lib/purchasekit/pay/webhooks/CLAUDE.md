@@ -12,7 +12,7 @@ Handlers for webhook events from the PurchaseKit SaaS.
 
 | File | Event | Action |
 |------|-------|--------|
-| `subscription_created.rb` | `subscription.created` | Creates `Pay::Subscription`, broadcasts redirect |
+| `subscription_created.rb` | `subscription.created` | Creates or updates `Pay::Subscription`, broadcasts redirect for new |
 | `subscription_updated.rb` | `subscription.updated` | Updates status, plan, period dates |
 | `subscription_canceled.rb` | `subscription.canceled` | Sets status to canceled, sets `ends_at` |
 | `subscription_expired.rb` | `subscription.expired` | Sets status to expired |
@@ -25,7 +25,8 @@ The SaaS normalizes Apple/Google data into this format:
 {
   "type" => "subscription.created",
   "customer_id" => "123",           # Pay::Customer.id
-  "subscription_id" => "sub_abc",   # Unique ID from SaaS
+  "subscription_id" => "123456789", # Apple originalTransactionId or Google purchaseToken
+  "store" => "apple",               # "apple" or "google"
   "store_product_id" => "com.example.pro.annual",
   "subscription_name" => "pro",
   "status" => "active",
@@ -35,6 +36,8 @@ The SaaS normalizes Apple/Google data into this format:
   "success_path" => "/dashboard"    # Only on subscription.created
 }
 ```
+
+The `store` field is saved to `Pay::Subscription#data["store"]` for identifying the source.
 
 Note: Keys are strings (not symbols) after JSON round-trip through `Pay::Webhook`.
 
