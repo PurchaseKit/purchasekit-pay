@@ -5,5 +5,8 @@ module PurchaseKit
 
     class NotFoundError < Error
     end
+
+    class SubscriptionRequiredError < Error
+    end
   end
 end

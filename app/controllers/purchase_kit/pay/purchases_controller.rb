@@ -1,6 +1,8 @@
 module PurchaseKit
   module Pay
     class PurchasesController < ApplicationController
+      rescue_from PurchaseKit::Pay::SubscriptionRequiredError, with: :subscription_required
+
       def create
         @customer = ::Pay::Customer.find(params[:customer_id])
 
@@ -13,6 +15,20 @@ module PurchaseKit
 
         respond_to do |format|
           format.turbo_stream
+        end
+      end
+
+      private
+
+      def subscription_required(exception)
+        respond_to do |format|
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.replace(
+              "purchasekit_paywall",
+              partial: "purchase_kit/pay/purchases/subscription_required",
+              locals: {message: exception.message}
+            )
+          end
         end
       end
     end

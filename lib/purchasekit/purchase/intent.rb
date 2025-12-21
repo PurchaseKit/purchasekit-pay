@@ -27,6 +27,8 @@ module PurchaseKit
               google_product_id: product_data["google_product_id"]
             )
             new(id: response["id"], uuid: response["uuid"], product: product)
+          when 402
+            raise Pay::SubscriptionRequiredError, response["error"] || "Subscription required for production purchases"
           when 404
             raise Pay::NotFoundError, "App or product not found"
           else
