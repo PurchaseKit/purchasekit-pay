@@ -11,7 +11,7 @@ module PurchaseKit
 
       class << self
         def create(product_id:, customer_id:, success_path: nil, environment: nil)
-          response = ApiClient.new.post("/purchase_intents", {
+          response = ApiClient.new.post("/purchase/intents", {
             product_id: product_id,
             customer_id: customer_id,
             success_path: success_path,
