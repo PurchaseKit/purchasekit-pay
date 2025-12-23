@@ -23,6 +23,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "pay", "~> 11.4"
   spec.add_dependency "rails", ">= 7.0", "< 9"
 
-  spec.add_development_dependency "vcr"
-  spec.add_development_dependency "webmock"
+  spec.add_development_dependency "vcr", "~> 6.0"
+  spec.add_development_dependency "webmock", "~> 3.0"
 end
