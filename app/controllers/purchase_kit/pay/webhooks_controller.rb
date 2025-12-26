@@ -16,7 +16,10 @@ class PurchaseKit::Pay::WebhooksController < PurchaseKit::Pay::ApplicationContro
     signature = request.headers["X-PurchaseKit-Signature"]
     secret = PurchaseKit::Pay.config.webhook_secret
 
-    return JSON.parse(payload, symbolize_names: true) if secret.blank?
+    if secret.blank?
+      raise SignatureVerificationError, "webhook_secret must be configured" if Rails.env.production?
+      return JSON.parse(payload, symbolize_names: true)
+    end
 
     raise SignatureVerificationError, "Missing signature" if signature.blank?
 

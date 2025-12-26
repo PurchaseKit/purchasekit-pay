@@ -59,7 +59,7 @@ class PurchaseKit::Pay::WebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_response :bad_request
   end
 
-  def test_accepts_request_without_signature_when_secret_blank
+  def test_accepts_request_without_signature_when_secret_blank_in_development
     original_secret = PurchaseKit::Pay.config.webhook_secret
     PurchaseKit::Pay.config.webhook_secret = nil
 
@@ -70,6 +70,23 @@ class PurchaseKit::Pay::WebhooksControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :ok
+  ensure
+    PurchaseKit::Pay.config.webhook_secret = original_secret
+  end
+
+  def test_rejects_request_when_secret_blank_in_production
+    original_secret = PurchaseKit::Pay.config.webhook_secret
+    PurchaseKit::Pay.config.webhook_secret = nil
+
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+      assert_no_difference "Pay::Webhook.count" do
+        post "/purchasekit/webhooks",
+          params: @payload,
+          headers: {"Content-Type" => "application/json"}
+      end
+
+      assert_response :bad_request
+    end
   ensure
     PurchaseKit::Pay.config.webhook_secret = original_secret
   end

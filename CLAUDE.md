@@ -13,6 +13,8 @@ PurchaseKit::Pay.configure do |config|
 end
 ```
 
+**Note:** `webhook_secret` is required in production. Webhooks without a valid signature will be rejected. In development/test, signature verification is skipped if the secret is blank.
+
 ## Architecture
 
 The gem acts as a bridge between:

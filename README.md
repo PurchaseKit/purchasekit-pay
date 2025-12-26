@@ -31,6 +31,8 @@ PurchaseKit::Pay.configure do |config|
 end
 ```
 
+> **Important:** `webhook_secret` is required in production. Webhooks will be rejected if signature verification fails.
+
 Mount the engine in your routes:
 
 ```ruby
