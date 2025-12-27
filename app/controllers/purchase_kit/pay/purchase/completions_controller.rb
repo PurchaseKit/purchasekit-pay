@@ -10,7 +10,7 @@ class PurchaseKit::Pay::Purchase::CompletionsController < PurchaseKit::Pay::Appl
       return
     end
 
-    intent = PurchaseKit::Purchase::DemoIntent.find(params[:intent_uuid])
+    intent = PurchaseKit::Purchase::Intent::Demo.find(params[:intent_uuid])
     customer = ::Pay::Customer.find(intent.customer_id)
 
     customer.subscriptions.create!(

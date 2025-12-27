@@ -32,8 +32,8 @@ end
 ```
 
 In demo mode:
-- `Product.find` returns from `demo_products` instead of calling the API
-- `Purchase::Intent.create` generates a local intent (stored in memory via `DemoIntent`)
+- `Product.find` delegates to `Product::Demo` (reads from config) instead of `Product::Remote` (API call)
+- `Purchase::Intent.create` delegates to `Intent::Demo` (in-memory store) instead of `Intent::Remote` (API call)
 - The iOS app's Xcode completion callback POSTs directly to the local Rails app
 - The completions controller creates a `Pay::Subscription` and broadcasts a Turbo Stream redirect
 
@@ -132,6 +132,30 @@ The paywall controller:
 - Passes environment through to SaaS when creating purchase intent
 - Shows spinner on submit button while processing (via `data-processing-text` attribute)
 
+## Polymorphic class structure
+
+`Product` and `Intent` use polymorphic subclasses for demo vs production behavior:
+
+```
+Product.find        → Product::Demo or Product::Remote
+Intent.create       → Intent::Demo or Intent::Remote
+```
+
+Each base class owns its `demo_mode?` dispatch internally. Subclasses live in nested directories:
+
+```
+lib/purchasekit/
+├── product.rb
+├── product/
+│   ├── demo.rb
+│   └── remote.rb
+└── purchase/
+    ├── intent.rb
+    └── intent/
+        ├── demo.rb
+        └── remote.rb
+```
+
 ## Key decisions
 
 - SaaS normalizes Apple/Google payloads (gem never sees raw data)
@@ -140,6 +164,7 @@ The paywall controller:
 - `success_path` passed through SaaS in webhook payload (no Rails.cache)
 - ActionCable `async` adapter won't work for console testing (in-memory only)
 - Products fetched from SaaS API; display text (name, description) lives in the view for i18n support
+- Polymorphism over conditionals: each class owns its demo/remote dispatch
 
 ## Testing
 
