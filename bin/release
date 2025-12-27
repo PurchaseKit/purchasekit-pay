@@ -24,11 +24,11 @@ git add "$VERSION_FILE"
 git commit -m "Bump version to $VERSION"
 
 # 3. Tag with version
-git tag "v$VERSION"
+git tag "$VERSION"
 
 # 4. Push to git + tags
 git push origin main
-git push origin "v$VERSION"
+git push origin "$VERSION"
 
 # 5. Build gem
 gem build purchasekit-pay.gemspec
