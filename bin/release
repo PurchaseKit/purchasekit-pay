@@ -17,6 +17,13 @@ fi
 
 # 2. Bump version
 VERSION_FILE="lib/purchasekit/pay/version.rb"
+CURRENT_VERSION=$(grep -o 'VERSION = "[^"]*"' "$VERSION_FILE" | cut -d'"' -f2)
+
+if [[ "$CURRENT_VERSION" == "$VERSION" ]]; then
+  echo "Error: Version is already $VERSION"
+  exit 1
+fi
+
 sed -i '' "s/VERSION = \".*\"/VERSION = \"$VERSION\"/" "$VERSION_FILE"
 
 # Commit version bump
