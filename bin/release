@@ -1,27 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+  shift
+fi
+
 VERSION=${1:-}
 
 if [[ -z "$VERSION" ]]; then
-  echo "Usage: bin/release VERSION"
+  echo "Usage: bin/release [--dry-run] VERSION"
   echo "Example: bin/release 0.2.0"
   exit 1
 fi
 
-# 1. Check clean git status
 if [[ -n $(git status --porcelain) ]]; then
   echo "Error: Working directory not clean. Commit or stash changes first."
   exit 1
 fi
 
-# 2. Bump version
 VERSION_FILE="lib/purchasekit/pay/version.rb"
 CURRENT_VERSION=$(grep -o 'VERSION = "[^"]*"' "$VERSION_FILE" | cut -d'"' -f2)
 
 if [[ "$CURRENT_VERSION" == "$VERSION" ]]; then
   echo "Error: Version is already $VERSION"
   exit 1
+fi
+
+if [[ "$DRY_RUN" == true ]]; then
+  echo "gem/: $CURRENT_VERSION -> $VERSION"
+  exit 0
 fi
 
 sed -i '' "s/VERSION = \".*\"/VERSION = \"$VERSION\"/" "$VERSION_FILE"
