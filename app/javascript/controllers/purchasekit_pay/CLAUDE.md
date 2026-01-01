@@ -25,7 +25,6 @@ Extends `BridgeComponent` from Hotwire Native Bridge.
 **Bridge messages:**
 - `prices` - Request localized prices for product IDs
 - `purchase` - Trigger native purchase flow with product ID and correlation ID
-- `restore` - Restore previous purchases
 
 ## Related files
 

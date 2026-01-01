@@ -126,21 +126,4 @@ class PurchaseKit::Pay::PaywallHelperTest < ActionView::TestCase
     assert_match 'data-turbo-submits-with="Subscribe Now"', html
   end
 
-  def test_restore_link_renders_link_with_action
-    html = purchasekit_paywall(customer: @customer, success_path: "/") do |paywall|
-      paywall.restore_link
-    end
-
-    assert_match 'href="#"', html
-    assert_match "purchasekit-pay--paywall#restore", html
-    assert_match "Restore purchases", html
-  end
-
-  def test_restore_link_with_custom_text
-    html = purchasekit_paywall(customer: @customer, success_path: "/") do |paywall|
-      paywall.restore_link(text: "Already purchased?")
-    end
-
-    assert_match "Already purchased?", html
-  end
 end

@@ -85,12 +85,5 @@ module PurchaseKit
       @template.submit_tag(text, disabled: true, data: data, **options)
     end
 
-    def restore_link(text: "Restore purchases", **options)
-      data = (options.delete(:data) || {}).merge(
-        action: "click->purchasekit--paywall#restore"
-      )
-
-      @template.link_to(text, "#", data: data, **options)
-    end
   end
 end

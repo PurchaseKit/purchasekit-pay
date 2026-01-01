@@ -37,7 +37,6 @@ Builder yielded by the paywall helper.
 | `plan_option(product:, selected:)` | Radio + label for a plan | `purchasekit_pay__paywall_target: "planRadio"` |
 | `price` | Span for localized price (must be within `plan_option` block) | `purchasekit_pay__paywall_target: "price"` |
 | `submit(text)` | Submit button (starts disabled) | `purchasekit_pay__paywall_target: "submitButton"` |
-| `restore_link(text:)` | Link to restore purchases | `action: "click->purchasekit-pay--paywall#restore"` |
 
 ## Usage
 

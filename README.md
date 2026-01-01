@@ -133,8 +133,25 @@ Build a paywall using the included helper:
   <% end %>
 
   <%= paywall.submit "Subscribe" %>
-  <%= paywall.restore_link %>
 <% end %>
+
+<%= button_to "Restore purchases", restore_purchases_path %>
+```
+
+The restore link checks your server for an active subscription. Implement the endpoint in your app:
+
+```ruby
+# routes.rb
+post "restore_purchases", to: "subscriptions#restore"
+
+# subscriptions_controller.rb
+def restore
+  if current_user.subscribed?
+    redirect_to dashboard_path, notice: "Your subscription is active."
+  else
+    redirect_to paywall_path, alert: "No active subscription found."
+  end
+end
 ```
 
 Products are fetched from the PurchaseKit API:

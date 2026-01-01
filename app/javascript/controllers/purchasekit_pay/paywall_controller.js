@@ -19,11 +19,6 @@ export default class extends BridgeComponent {
     this.#triggerNativePurchase(productIds, correlationId, xcodeCompletionUrl)
   }
 
-  restore(event) {
-    event.preventDefault()
-    this.send("restore")
-  }
-
   #triggerNativePurchase(productIds, correlationId, xcodeCompletionUrl) {
     this.send("purchase", { ...productIds, correlationId, xcodeCompletionUrl }, message => {
       const { status, error } = message.data
