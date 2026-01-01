@@ -1,169 +1,165 @@
-# PurchaseKit::Pay
+# PurchaseKit
 
-PurchaseKit payment processor for the [Pay gem](https://github.com/pay-rails/pay).
+In-app purchase webhooks for Rails. Receive normalized Apple and Google subscription events with a simple callback interface.
 
-Add mobile in-app purchases (IAP) to your Rails app with [PurchaseKit](https://purchasekit.dev) and Pay.
+## How it works
+
+```
+Native app (iOS/Android)
+    ↓ StoreKit/Play Billing
+App Store / Play Store
+    ↓ Server-to-server notifications
+PurchaseKit SaaS (normalizes Apple/Google data)
+    ↓ Webhooks
+Your Rails app (via this gem)
+    ↓ Callbacks or Pay::Subscription
+Your business logic
+```
+
+PurchaseKit handles the complexity of Apple and Google's different webhook formats, delivering you a consistent event payload regardless of which store the purchase came from.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add to your Gemfile:
 
 ```ruby
-gem "purchasekit-pay"
+gem "purchasekit"
 ```
 
-And then execute:
-
-```bash
-bundle install
-```
-
-## Configuration
-
-Configure your PurchaseKit API key:
+Create an initializer:
 
 ```ruby
 # config/initializers/purchasekit.rb
-PurchaseKit::Pay.configure do |config|
+PurchaseKit.configure do |config|
   config.api_key = Rails.application.credentials.dig(:purchasekit, :api_key)
   config.app_id = Rails.application.credentials.dig(:purchasekit, :app_id)
   config.webhook_secret = Rails.application.credentials.dig(:purchasekit, :webhook_secret)
 end
 ```
 
-> **Important:** `webhook_secret` is required in production. Webhooks will be rejected if signature verification fails.
-
 Mount the engine in your routes:
 
 ```ruby
 # config/routes.rb
-mount PurchaseKit::Pay::Engine, at: "/purchasekit"
+mount PurchaseKit::Engine, at: "/purchasekit"
 ```
 
-### JavaScript setup
-
-Import the Turbo Stream actions in your application:
+Import the JavaScript:
 
 ```javascript
 // app/javascript/application.js
-import "purchasekit-pay/turbo_actions"
-```
+import "purchasekit/turbo_actions"
 
-Register the gem's Stimulus controllers:
-
-```javascript
 // app/javascript/controllers/index.js
-import { application } from "controllers/application"
-import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
-
-eagerLoadControllersFrom("controllers", application)
-eagerLoadControllersFrom("purchasekit-pay", application)
+eagerLoadControllersFrom("purchasekit", application)
 ```
 
-## Usage
+## Pay gem integration
 
-### Adding a paywall
-
-First, ensure your user has a PurchaseKit payment processor:
+If you use the [Pay gem](https://github.com/pay-rails/pay), PurchaseKit automatically detects it and handles everything:
 
 ```ruby
-current_user.set_payment_processor(:purchasekit)
+gem "pay"
+gem "purchasekit"
 ```
 
-Fetch products in your controller:
+When Pay is detected, webhooks automatically create and update `Pay::Subscription` records and broadcast Turbo Stream redirects. No event callbacks needed.
+
+## Event callbacks (without Pay)
+
+If you're not using Pay, register callbacks to handle subscription events:
 
 ```ruby
-@annual = PurchaseKit::Product.find("prod_XXX")
-@monthly = PurchaseKit::Product.find("prod_YYY")
+# config/initializers/purchasekit.rb
+PurchaseKit.configure do |config|
+  # ... credentials ...
+
+  config.on(:subscription_created) do |event|
+    user = User.find(event.customer_id)
+    user.subscriptions.create!(
+      processor_id: event.subscription_id,
+      store: event.store,
+      status: event.status
+    )
+  end
+
+  config.on(:subscription_canceled) do |event|
+    subscription = Subscription.find_by(processor_id: event.subscription_id)
+    subscription&.update!(status: "canceled")
+  end
+
+  config.on(:subscription_expired) do |event|
+    subscription = Subscription.find_by(processor_id: event.subscription_id)
+    subscription&.update!(status: "expired")
+  end
+end
 ```
 
-Then render a paywall using the builder pattern:
+### Available events
+
+| Event | Description |
+|-------|-------------|
+| `:subscription_created` | New subscription started |
+| `:subscription_updated` | Subscription renewed or plan changed |
+| `:subscription_canceled` | User canceled (still active until `ends_at`) |
+| `:subscription_expired` | Subscription ended |
+
+### Event payload
+
+| Method | Description |
+|--------|-------------|
+| `event.customer_id` | Your user ID |
+| `event.subscription_id` | Store's subscription ID |
+| `event.store` | `"apple"` or `"google"` |
+| `event.store_product_id` | e.g., `"com.example.pro.annual"` |
+| `event.status` | `"active"`, `"canceled"`, `"expired"` |
+| `event.current_period_start` | Start of billing period |
+| `event.current_period_end` | End of billing period |
+| `event.ends_at` | When subscription will end |
+| `event.success_path` | Redirect path after purchase |
+
+## Paywall helper
+
+Build a paywall using the included helper:
 
 ```erb
-<%# Subscribe to ActionCable for real-time redirect after purchase %>
-<%= turbo_stream_from dom_id(current_user.payment_processor) %>
-
-<%= purchasekit_paywall customer: current_user.payment_processor, success_path: dashboard_path do |paywall| %>
+<%= purchasekit_paywall customer_id: current_user.id, success_path: dashboard_path do |paywall| %>
   <%= paywall.plan_option product: @annual, selected: true do %>
-    <span>Annual</span>
-    <%= paywall.price %>
+    Annual - <%= paywall.price %>/year
   <% end %>
 
   <%= paywall.plan_option product: @monthly do %>
-    <span>Monthl</span>
-    <%= paywall.price %>
+    Monthly - <%= paywall.price %>/month
   <% end %>
 
-  <%= paywall.submit "Subscribe", class: "btn btn-primary" %>
+  <%= paywall.submit "Subscribe" %>
   <%= paywall.restore_link %>
 <% end %>
 ```
 
-### Paywall helper options
+Products are fetched from the PurchaseKit API:
 
-- `customer:` (required) - A `Pay::Customer` instance
-- `success_path:` - Where to redirect after successful purchase (defaults to `root_path`)
-
-### Builder methods
-
-- `plan_option(product:, selected: false)` - Radio button and label for a plan
-- `price` - Displays the localized price (must be inside `plan_option` block)
-- `submit(text)` - Submit button (disabled until prices load)
-- `restore_link(text: "Restore purchases")` - Link to restore previous purchases
-
-### How it works
-
-1. Page loads, Stimulus controller requests prices from native app via Hotwire Native Bridge
-2. User selects a plan and taps subscribe
-3. Form submits to PurchasesController, which creates a purchase intent with PurchaseKit
-4. Native app handles the App Store/Play Store purchase flow
-5. PurchaseKit receives webhook from Apple/Google, normalizes it, and POSTs to your app
-6. Webhook handler creates `Pay::Subscription` and broadcasts a Turbo Stream redirect
-7. User is redirected to `success_path`
-
-## Webhook events
-
-The gem handles these webhook events from the PurchaseKit:
-
-- `subscription.created` - Creates a new `Pay::Subscription`
-- `subscription.updated` - Updates subscription status and period
-- `subscription.canceled` - Marks subscription as canceled
-- `subscription.expired` - Marks subscription as expired
-
-## Requirements
-
-- Ruby 3.1+
-- Rails 7.0 - 8.x
-- Pay 11.4+
-- Turbo Rails (for ActionCable broadcasts)
-- Stimulus
-- Hotwire Native app with PurchaseKit bridge component
-
-### JavaScript dependencies
-
-This gem vendors and pins:
-
-- **@hotwired/hotwire-native-bridge** (v1.2.2)
-
-If your app already pins this package, your version takes precedence.
-
-## Development
-
-After cloning the repo, run:
-
-```bash
-bundle install
-bundle exec rake test
+```ruby
+@annual = PurchaseKit::Product.find("prod_XXXXXXXX")
+@monthly = PurchaseKit::Product.find("prod_YYYYYYYY")
 ```
 
-## Releasing
+## Demo mode
 
-```bash
-bin/release 1.2.0
+For local development without a PurchaseKit account:
+
+```ruby
+PurchaseKit.configure do |config|
+  config.demo_mode = true
+  config.demo_products = {
+    "prod_annual" => { apple_product_id: "com.example.pro.annual" },
+    "prod_monthly" => { apple_product_id: "com.example.pro.monthly" }
+  }
+end
 ```
 
-This bumps the version, commits, tags, pushes, and publishes to RubyGems.
+Works with Xcode's StoreKit local testing.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+This software is licensed under a custom PurchaseKit License. The gem may only be used in applications that actively integrate with the official PurchaseKit service at https://purchasekit.dev. See LICENSE for full details.

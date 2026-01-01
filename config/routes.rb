@@ -1,10 +1,7 @@
-PurchaseKit::Pay::Engine.routes.draw do
-  resources :purchases, only: [:create]
-  resource :webhooks, only: [:create]
+PurchaseKit::Engine.routes.draw do
+  resource :webhooks, only: :create
+  resources :purchases, only: :create
 
-  namespace :purchase do
-    resources :intents, only: [], param: :uuid do
-      resource :completions, only: [:create]
-    end
-  end
+  # Demo mode only - Xcode StoreKit testing completion endpoint
+  post "purchase/completions/:id", to: "purchase/completions#create"
 end

@@ -1,8 +1,3 @@
-# Pin Hotwire Native Bridge dependency
-# Note: If your app already pins this package, your version will take precedence
-# since the app's importmap.rb loads after the gem's importmap.rb
-pin "@hotwired/hotwire-native-bridge", to: "@hotwired--hotwire-native-bridge.js" # @1.2.2
-
-pin_all_from PurchaseKit::Pay::Engine.root.join("app/javascript/controllers"), under: "purchasekit-pay", to: "controllers"
-
-pin "purchasekit-pay/turbo_actions", to: "purchasekit_pay/turbo_actions.js"
+pin "@hotwired/hotwire-native-bridge", to: "https://cdn.jsdelivr.net/npm/@hotwired/hotwire-native-bridge@1.2.2/dist/hotwire-native-bridge.js"
+pin_all_from PurchaseKit::Engine.root.join("app/javascript/controllers/purchasekit"), under: "controllers/purchasekit"
+pin_all_from PurchaseKit::Engine.root.join("app/javascript/purchasekit"), under: "purchasekit"

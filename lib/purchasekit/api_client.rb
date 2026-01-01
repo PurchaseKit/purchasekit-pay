@@ -1,6 +1,11 @@
 require "httparty"
 
 module PurchaseKit
+  # HTTP client for the PurchaseKit SaaS API.
+  #
+  # Used internally by Product and Purchase::Intent to communicate
+  # with the PurchaseKit backend.
+  #
   class ApiClient
     def get(path)
       request(:get, path)
@@ -32,7 +37,7 @@ module PurchaseKit
     end
 
     def config
-      PurchaseKit::Pay.config
+      PurchaseKit.config
     end
   end
 end

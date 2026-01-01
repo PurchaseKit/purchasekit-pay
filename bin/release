@@ -20,7 +20,7 @@ if [[ -n $(git status --porcelain) ]]; then
   exit 1
 fi
 
-VERSION_FILE="lib/purchasekit/pay/version.rb"
+VERSION_FILE="lib/purchasekit/version.rb"
 CURRENT_VERSION=$(grep -o 'VERSION = "[^"]*"' "$VERSION_FILE" | cut -d'"' -f2)
 
 if [[ "$CURRENT_VERSION" == "$VERSION" ]]; then
@@ -37,22 +37,22 @@ sed -i '' "s/VERSION = \".*\"/VERSION = \"$VERSION\"/" "$VERSION_FILE"
 
 # Commit version bump
 git add "$VERSION_FILE"
-git commit -m "Bump version to $VERSION"
+git commit -m "Bump purchasekit version to $VERSION"
 
-# 3. Tag with version
-git tag "$VERSION"
+# Tag with version (prefixed to differentiate from iOS package)
+git tag "purchasekit-$VERSION"
 
-# 4. Push to git + tags
+# Push to git + tags
 git push origin main
-git push origin "$VERSION"
+git push origin "purchasekit-$VERSION"
 
-# 5. Build gem
-gem build purchasekit-pay.gemspec
+# Build gem
+gem build purchasekit.gemspec
 
-# 6. Release gem
-gem push "purchasekit-pay-$VERSION.gem"
+# Release gem
+gem push "purchasekit-$VERSION.gem"
 
 # Cleanup
-rm "purchasekit-pay-$VERSION.gem"
+rm "purchasekit-$VERSION.gem"
 
-echo "Released purchasekit-pay v$VERSION"
+echo "Released purchasekit v$VERSION"

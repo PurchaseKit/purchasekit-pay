@@ -1,5 +1,7 @@
 module PurchaseKit
   class Product
+    # Production implementation of Product that fetches from PurchaseKit API.
+    #
     class Remote
       class << self
         def find(id)
@@ -13,9 +15,9 @@ module PurchaseKit
               google_product_id: response["google_product_id"]
             )
           when 404
-            raise PurchaseKit::Pay::NotFoundError, "Product not found: #{id}"
+            raise PurchaseKit::NotFoundError, "Product not found: #{id}"
           else
-            raise PurchaseKit::Pay::Error, "API error: #{response.code} #{response.message}"
+            raise PurchaseKit::Error, "API error: #{response.code} #{response.message}"
           end
         end
       end

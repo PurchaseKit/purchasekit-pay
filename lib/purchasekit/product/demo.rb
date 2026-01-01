@@ -1,10 +1,15 @@
 module PurchaseKit
   class Product
+    # Demo implementation of Product for local development.
+    #
+    # Reads product data from PurchaseKit.config.demo_products instead
+    # of making API calls. Designed for use with Xcode's StoreKit testing.
+    #
     class Demo
       class << self
         def find(id)
-          product_data = PurchaseKit::Pay.config.demo_products[id]
-          raise PurchaseKit::Pay::NotFoundError, "Product not found: #{id}" unless product_data
+          product_data = PurchaseKit.config.demo_products[id]
+          raise PurchaseKit::NotFoundError, "Product not found: #{id}" unless product_data
 
           Product.new(
             id: id,
