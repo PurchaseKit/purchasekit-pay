@@ -65,6 +65,12 @@ module PurchaseKit
         @payload = payload.is_a?(Hash) ? payload.with_indifferent_access : payload
       end
 
+      # Unique identifier for this event. Use for idempotency checks.
+      # Store processed event_ids to prevent duplicate processing.
+      def event_id
+        payload[:event_id]
+      end
+
       # The customer ID you passed when creating the purchase intent.
       # Use this to look up the user in your database.
       def customer_id

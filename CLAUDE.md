@@ -117,10 +117,13 @@ Handlers are stored in `@event_handlers` hash, keyed by event type symbol.
 
 **Turbo Stream broadcasts:** For non-Pay users, `Events.publish` broadcasts a redirect action to `purchasekit_customer_#{customer_id}`. Views should subscribe with `turbo_stream_from "purchasekit_customer_#{current_user.id}"`. A 30-second fallback redirect fires if ActionCable isn't connected.
 
+**Idempotency:** Webhooks may be delivered more than once. Handlers should be idempotent (use `find_or_create_by`). The `event.event_id` is available for custom deduplication if needed.
+
 ### Event class
 
 `PurchaseKit::Events::Event` wraps the raw payload with convenience methods:
 
+- `event_id` - Unique event identifier (for idempotency)
 - `customer_id` - Your user ID
 - `subscription_id` - Store's transaction/purchase ID
 - `store` - "apple" or "google"

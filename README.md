@@ -108,6 +108,7 @@ end
 
 | Method | Description |
 |--------|-------------|
+| `event.event_id` | Unique event identifier (for idempotency) |
 | `event.customer_id` | Your user ID |
 | `event.subscription_id` | Store's subscription ID |
 | `event.store` | `"apple"` or `"google"` |
@@ -117,6 +118,10 @@ end
 | `event.current_period_end` | End of billing period |
 | `event.ends_at` | When subscription will end |
 | `event.success_path` | Redirect path after purchase |
+
+### Idempotency
+
+Webhooks may be delivered more than once. Write idempotent callbacks using `find_or_create_by` or check `event.event_id` to avoid duplicate side effects.
 
 ## Paywall helper
 
