@@ -18,7 +18,7 @@ module PurchaseKit
     private
 
     def request(method, path, body = nil)
-      options = {headers: headers}
+      options = {headers: headers, timeout: 15}
       options[:body] = body.to_json if body
 
       HTTParty.public_send(method, url(path), options)

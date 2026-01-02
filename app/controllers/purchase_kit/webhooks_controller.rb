@@ -13,6 +13,9 @@ module PurchaseKit
       PurchaseKit.queue_pay_webhook(event) if PurchaseKit.pay_enabled?
 
       head :ok
+    rescue JSON::ParserError => e
+      Rails.logger.error "[PurchaseKit] Invalid JSON in webhook: #{e.message}"
+      head :bad_request
     rescue PurchaseKit::SignatureVerificationError => e
       Rails.logger.error "[PurchaseKit] Webhook signature error: #{e.message}"
       head :bad_request
