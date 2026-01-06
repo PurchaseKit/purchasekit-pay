@@ -43,10 +43,11 @@ module PurchaseKit
     end
 
     def pay_enabled?
-      defined?(::Pay)
+      defined?(::Pay) && defined?(::Pay::VERSION)
     end
 
     def queue_pay_webhook(event)
+      return unless defined?(PurchaseKit::Pay::Webhook)
       PurchaseKit::Pay::Webhook.queue(event)
     end
   end

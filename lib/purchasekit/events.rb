@@ -9,7 +9,6 @@ module PurchaseKit
 
     class << self
       include ActionView::Helpers::TagHelper
-      include Turbo::Streams::ActionHelper
 
       # Publish an event to all registered handlers.
       #
@@ -43,10 +42,11 @@ module PurchaseKit
 
       def broadcast_redirect(event)
         return if event.success_path.blank?
+        return unless defined?(Turbo::StreamsChannel)
 
         Turbo::StreamsChannel.broadcast_stream_to(
           "purchasekit_customer_#{event.customer_id}",
-          content: turbo_stream_action_tag(:redirect, url: event.success_path)
+          content: tag.turbo_stream(action: :redirect, url: event.success_path)
         )
       end
     end
