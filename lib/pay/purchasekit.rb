@@ -1,3 +1,5 @@
+require "purchasekit/pay/webhooks"
+
 module Pay
   module Purchasekit
     class Error < Pay::Error
