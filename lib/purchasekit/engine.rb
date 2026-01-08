@@ -31,6 +31,7 @@ module PurchaseKit
 
     initializer "purchasekit.pay_webhooks", after: :load_config_initializers do
       if PurchaseKit.pay_enabled?
+        require "pay/purchasekit"
         ::Pay::Purchasekit.configure_webhooks
       end
     end
