@@ -1,10 +1,10 @@
-# Load the dummy Rails app
+# Load the dummy Rails app (with Pay gem)
 ENV["RAILS_ENV"] = "test"
 
 # Suppress Pay gem's method redefinition warning
 # Remove after https://github.com/pay-rails/pay/pull/1214 is released
 $VERBOSE = nil
-require_relative "dummy/config/environment"
+require_relative "dummy_pay/config/environment"
 $VERBOSE = true
 
 require "rails/test_help"
