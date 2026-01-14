@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.version = PurchaseKit::VERSION
   spec.authors = ["Joe Masilotti"]
   spec.email = ["joe@masilotti.com"]
-  spec.homepage = "https://purchasekit.dev"
+  spec.homepage = "https://purchasekit.com"
   spec.summary = "In-app purchase infrastructure for Rails"
   spec.description = "Receive normalized Apple and Google in-app purchase webhooks in your Rails app. Optionally integrates with the Pay gem automatically."
   spec.license = "MIT"

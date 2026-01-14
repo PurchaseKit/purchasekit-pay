@@ -4,7 +4,7 @@ class PurchaseKit::ConfigurationTest < Minitest::Test
   def test_default_api_url
     config = PurchaseKit::Configuration.new
 
-    assert_equal "https://purchasekit.dev", config.api_url
+    assert_equal "https://purchasekit.com", config.api_url
   end
 
   def test_api_url_is_configurable
@@ -73,6 +73,6 @@ class PurchaseKit::ConfigurationTest < Minitest::Test
   def test_base_api_url_includes_api_version
     config = PurchaseKit::Configuration.new
 
-    assert_equal "https://purchasekit.dev/api/v1", config.base_api_url
+    assert_equal "https://purchasekit.com/api/v1", config.base_api_url
   end
 end

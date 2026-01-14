@@ -86,7 +86,7 @@ Configuration is a singleton accessed via `PurchaseKit.config`:
 
 ```ruby
 PurchaseKit.configure do |config|
-  config.api_url = "https://purchasekit.dev"  # Default
+  config.api_url = "https://purchasekit.com"  # Default
   config.api_key = "sk_xxx"
   config.app_id = "app_xxx"
   config.webhook_secret = "whsec_xxx"

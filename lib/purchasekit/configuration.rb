@@ -4,7 +4,7 @@ module PurchaseKit
     attr_accessor :demo_mode, :demo_products
 
     def initialize
-      @api_url = "https://purchasekit.dev"
+      @api_url = "https://purchasekit.com"
       @demo_mode = false
       @demo_products = {}
       @event_handlers = Hash.new { |h, k| h[k] = [] }
